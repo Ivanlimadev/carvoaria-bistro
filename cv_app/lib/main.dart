@@ -123,7 +123,6 @@ class _BistroHomePageState extends State<BistroHomePage> {
     ),
   ];
 
-  final PageController _pageController = PageController();
   Timer? _slideTimer;
   int _activeSlide = 0;
 
@@ -131,22 +130,15 @@ class _BistroHomePageState extends State<BistroHomePage> {
   void initState() {
     super.initState();
     _slideTimer = Timer.periodic(const Duration(seconds: 5), (_) {
-      if (!_pageController.hasClients) {
-        return;
-      }
-      final int next = (_activeSlide + 1) % _slides.length;
-      _pageController.animateToPage(
-        next,
-        duration: const Duration(milliseconds: 500),
-        curve: Curves.easeInOut,
-      );
+      setState(() {
+        _activeSlide = (_activeSlide + 1) % _slides.length;
+      });
     });
   }
 
   @override
   void dispose() {
     _slideTimer?.cancel();
-    _pageController.dispose();
     super.dispose();
   }
 
@@ -155,25 +147,26 @@ class _BistroHomePageState extends State<BistroHomePage> {
     final bool isMobile = MediaQuery.of(context).size.width < 800;
 
     return Scaffold(
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            _Header(isMobile: isMobile),
-            _HeroSlider(
-              slides: _slides,
-              isMobile: isMobile,
-              pageController: _pageController,
-              activeSlide: _activeSlide,
-              onSlideChanged: (value) {
-                setState(() {
-                  _activeSlide = value;
-                });
-              },
-            ),
-            _MenuSection(categories: _menuCategories),
-            const _LocationSection(),
-            const _Footer(),
-          ],
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              _Header(isMobile: isMobile),
+              _HeroSlider(
+                slides: _slides,
+                isMobile: isMobile,
+                activeSlide: _activeSlide,
+                onSlideChanged: (value) {
+                  setState(() {
+                    _activeSlide = value;
+                  });
+                },
+              ),
+              _MenuSection(categories: _menuCategories),
+              const _LocationSection(),
+              const _Footer(),
+            ],
+          ),
         ),
       ),
     );
@@ -187,11 +180,13 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool isCompact = MediaQuery.of(context).size.width < 430;
+
     return Container(
       width: double.infinity,
       padding: EdgeInsets.symmetric(
-        horizontal: isMobile ? 16 : 40,
-        vertical: 18,
+        horizontal: isMobile ? 14 : 40,
+        vertical: isCompact ? 14 : 18,
       ),
       decoration: const BoxDecoration(
         gradient: LinearGradient(
@@ -208,13 +203,14 @@ class _Header extends StatelessWidget {
             'CARVOARIA BISTRÔ',
             style: TextStyle(
               color: Color(0xFFF6E2CF),
-              fontSize: 24,
+              fontSize: 22,
               fontWeight: FontWeight.w700,
               letterSpacing: 1.1,
             ),
           ),
-          Row(
-            mainAxisSize: MainAxisSize.min,
+          Wrap(
+            spacing: isCompact ? 6 : 0,
+            runSpacing: 6,
             children: const [
               _NavChip(label: 'Cardápio'),
               _NavChip(label: 'Localização'),
@@ -234,9 +230,14 @@ class _NavChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool isCompact = MediaQuery.of(context).size.width < 430;
+
     return Container(
-      margin: const EdgeInsets.only(left: 10),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+      margin: EdgeInsets.only(left: isCompact ? 0 : 10),
+      padding: EdgeInsets.symmetric(
+        horizontal: isCompact ? 10 : 14,
+        vertical: isCompact ? 6 : 7,
+      ),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(999),
         color: const Color(0x33FFE8D3),
@@ -244,8 +245,9 @@ class _NavChip extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: const TextStyle(
+        style: TextStyle(
           color: Color(0xFFFCE8D7),
+          fontSize: isCompact ? 12 : 14,
           fontWeight: FontWeight.w600,
         ),
       ),
@@ -257,53 +259,67 @@ class _HeroSlider extends StatelessWidget {
   const _HeroSlider({
     required this.slides,
     required this.isMobile,
-    required this.pageController,
     required this.activeSlide,
     required this.onSlideChanged,
   });
 
   final List<SlideItem> slides;
   final bool isMobile;
-  final PageController pageController;
   final int activeSlide;
   final ValueChanged<int> onSlideChanged;
 
   @override
   Widget build(BuildContext context) {
+    final bool isCompact = MediaQuery.of(context).size.width < 430;
+
     return Container(
       width: double.infinity,
       padding: EdgeInsets.symmetric(
-        horizontal: isMobile ? 10 : 30,
-        vertical: isMobile ? 14 : 24,
+        horizontal: isMobile ? 8 : 30,
+        vertical: isMobile ? 12 : 24,
       ),
       child: SizedBox(
-        height: isMobile ? 320 : 460,
+        height: isCompact ? 290 : (isMobile ? 330 : 460),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(22),
-          child: Stack(
+          borderRadius: BorderRadius.circular(isCompact ? 16 : 22),
+          child: GestureDetector(
+            onHorizontalDragEnd: (details) {
+              if (details.primaryVelocity == null) return;
+              if (details.primaryVelocity! < -300) {
+                onSlideChanged((activeSlide + 1) % slides.length);
+              } else if (details.primaryVelocity! > 300) {
+                onSlideChanged((activeSlide - 1 + slides.length) % slides.length);
+              }
+            },
+            child: Stack(
             children: [
-              PageView.builder(
-                controller: pageController,
-                itemCount: slides.length,
-                onPageChanged: onSlideChanged,
-                itemBuilder: (context, index) {
-                  final SlideItem item = slides[index];
-                  return Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      Image.asset(item.imageAsset, fit: BoxFit.cover),
-                      const DecoratedBox(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.bottomCenter,
-                            end: Alignment.topCenter,
-                            colors: [Color(0xD9311A12), Color(0x33000000)],
-                          ),
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 900),
+                transitionBuilder: (child, animation) => FadeTransition(
+                  opacity: animation,
+                  child: child,
+                ),
+                child: Stack(
+                  key: ValueKey(activeSlide),
+                  fit: StackFit.expand,
+                  children: [
+                    Image.asset(
+                      slides[activeSlide].imageAsset,
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                      height: double.infinity,
+                    ),
+                    const DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.bottomCenter,
+                          end: Alignment.topCenter,
+                          colors: [Color(0xD9311A12), Color(0x33000000)],
                         ),
                       ),
-                    ],
-                  );
-                },
+                    ),
+                  ],
+                ),
               ),
               Positioned(
                 left: isMobile ? 14 : 22,
@@ -316,7 +332,7 @@ class _HeroSlider extends StatelessWidget {
                       'Carvoaria Bistrô',
                       style: TextStyle(
                         color: Color(0xFFFFEDE0),
-                        fontSize: 38,
+                        fontSize: 32,
                         fontWeight: FontWeight.w800,
                         height: 1,
                       ),
@@ -324,9 +340,11 @@ class _HeroSlider extends StatelessWidget {
                     const SizedBox(height: 8),
                     Text(
                       slides[activeSlide].title,
-                      style: const TextStyle(
+                      maxLines: isCompact ? 2 : 3,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
                         color: Color(0xFFFFF4EC),
-                        fontSize: 17,
+                        fontSize: isCompact ? 14 : 17,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -353,6 +371,7 @@ class _HeroSlider extends StatelessWidget {
               ),
             ],
           ),
+          ),
         ),
       ),
     );
@@ -366,30 +385,40 @@ class _MenuSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool isCompact = MediaQuery.of(context).size.width < 430;
+
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(18, 10, 18, 30),
+      padding: EdgeInsets.fromLTRB(14, isCompact ? 6 : 10, 14, 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Menu',
-            style: TextStyle(
-              fontSize: 34,
-              color: Color(0xFF2E1C14),
-              fontWeight: FontWeight.w800,
+          Align(
+            alignment: Alignment.center,
+            child: Text(
+              'Menu',
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 34,
+                color: Color(0xFF2E1C14),
+                fontWeight: FontWeight.w800,
+              ).copyWith(fontSize: isCompact ? 28 : 34),
             ),
           ),
-          const SizedBox(height: 6),
-          const Text(
-            'Escolha uma categoria para explorar a carta.',
-            style: TextStyle(
-              fontSize: 16,
-              color: Color(0xFF6D5141),
-              fontWeight: FontWeight.w500,
+          SizedBox(height: isCompact ? 4 : 6),
+          Align(
+            alignment: Alignment.center,
+            child: Text(
+              'Escolha uma categoria para explorar a carta.',
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 16,
+                color: Color(0xFF6D5141),
+                fontWeight: FontWeight.w500,
+              ).copyWith(fontSize: isCompact ? 14 : 16),
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: isCompact ? 12 : 16),
           LayoutBuilder(
             builder: (context, constraints) {
               final bool isMobile = constraints.maxWidth < 760;
@@ -424,6 +453,8 @@ class _MenuCategoryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool isCompact = MediaQuery.of(context).size.width < 430;
+
     return InkWell(
       onTap: () {
         Navigator.of(context).push(
@@ -434,7 +465,7 @@ class _MenuCategoryCard extends StatelessWidget {
       },
       borderRadius: BorderRadius.circular(18),
       child: Container(
-        padding: const EdgeInsets.all(18),
+        padding: EdgeInsets.all(isCompact ? 14 : 18),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(18),
           gradient: LinearGradient(
@@ -456,8 +487,8 @@ class _MenuCategoryCard extends StatelessWidget {
             Row(
               children: [
                 Container(
-                  width: 44,
-                  height: 44,
+                  width: isCompact ? 40 : 44,
+                  height: isCompact ? 40 : 44,
                   decoration: const BoxDecoration(
                     color: Color(0x22FFFFFF),
                     shape: BoxShape.circle,
@@ -468,50 +499,53 @@ class _MenuCategoryCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     category.name,
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: Color(0xFFFFF5ED),
-                      fontSize: 21,
+                      fontSize: isCompact ? 18 : 21,
                       fontWeight: FontWeight.w800,
                     ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 10),
+            SizedBox(height: isCompact ? 8 : 10),
             Text(
               category.tagline,
-              style: const TextStyle(
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
                 color: Color(0xFFFADCC6),
-                fontSize: 14,
+                fontSize: isCompact ? 13 : 14,
                 height: 1.3,
               ),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: isCompact ? 10 : 12),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
                   category.fromPrice,
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: Color(0xFFFFE6CC),
-                    fontSize: 17,
+                    fontSize: isCompact ? 15 : 17,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-                const Row(
+                Row(
                   children: [
                     Text(
                       'Ver área',
                       style: TextStyle(
                         color: Color(0xFFFFE6CC),
                         fontWeight: FontWeight.w600,
+                        fontSize: isCompact ? 12 : 14,
                       ),
                     ),
-                    SizedBox(width: 5),
+                    const SizedBox(width: 5),
                     Icon(
                       Icons.arrow_forward_rounded,
                       color: Color(0xFFFFE6CC),
-                      size: 18,
+                      size: isCompact ? 16 : 18,
                     ),
                   ],
                 ),
@@ -592,10 +626,12 @@ class _LocationSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool isCompact = MediaQuery.of(context).size.width < 430;
+
     return Container(
       width: double.infinity,
-      margin: const EdgeInsets.fromLTRB(18, 6, 18, 24),
-      padding: const EdgeInsets.all(18),
+      margin: EdgeInsets.fromLTRB(14, 6, 14, 20),
+      padding: EdgeInsets.all(isCompact ? 14 : 18),
       decoration: BoxDecoration(
         color: const Color(0xFFFBEBDD),
         borderRadius: BorderRadius.circular(18),
@@ -603,33 +639,45 @@ class _LocationSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Localização e Horários',
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 30,
               color: Color(0xFF2E1C14),
               fontWeight: FontWeight.w800,
+            ).copyWith(fontSize: isCompact ? 24 : 30),
+          ),
+          SizedBox(height: isCompact ? 10 : 12),
+          Text(
+            'Tv. da Cancella 1 7000-629 Évora - Portugal',
+            style: TextStyle(
+              fontSize: isCompact ? 14 : 16,
+              color: const Color(0xFF463426),
             ),
           ),
-          const SizedBox(height: 12),
-          const Text(
-            'Tv. da Cancella 1 7000-629 Évora - Portugal',
-            style: TextStyle(fontSize: 16, color: Color(0xFF463426)),
+          SizedBox(height: isCompact ? 6 : 8),
+          Text(
+            'Seg a Qui: 18h às 23h',
+            style: TextStyle(fontSize: isCompact ? 14 : 15),
           ),
-          const SizedBox(height: 8),
-          const Text('Seg a Qui: 18h às 23h', style: TextStyle(fontSize: 15)),
-          const Text('Sex e Sáb: 18h às 00h', style: TextStyle(fontSize: 15)),
-          const Text('Dom: 12h às 18h', style: TextStyle(fontSize: 15)),
-          const SizedBox(height: 14),
-          const Text(
+          Text(
+            'Sex e Sáb: 18h às 00h',
+            style: TextStyle(fontSize: isCompact ? 14 : 15),
+          ),
+          Text(
+            'Dom: 12h às 18h',
+            style: TextStyle(fontSize: isCompact ? 14 : 15),
+          ),
+          SizedBox(height: isCompact ? 12 : 14),
+          Text(
             'Siga-nos e entre em contato',
             style: TextStyle(
-              fontSize: 17,
+              fontSize: isCompact ? 15 : 17,
               color: Color(0xFF5B4334),
               fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: isCompact ? 10 : 12),
           Wrap(
             spacing: 14,
             runSpacing: 14,
@@ -746,6 +794,8 @@ class _SocialIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool isCompact = MediaQuery.of(context).size.width < 430;
+
     return InkWell(
       onTap: _openLink,
       borderRadius: BorderRadius.circular(999),
@@ -753,10 +803,10 @@ class _SocialIconButton extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: 78,
-            height: 78,
+            width: isCompact ? 64 : 78,
+            height: isCompact ? 64 : 78,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(22),
+              borderRadius: BorderRadius.circular(isCompact ? 18 : 22),
               gradient: LinearGradient(
                 colors: _brandGradient(),
                 begin: Alignment.topLeft,
@@ -773,13 +823,13 @@ class _SocialIconButton extends StatelessWidget {
             ),
             child: Center(child: _brandGlyph()),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: isCompact ? 6 : 8),
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               color: Color(0xFF4A362B),
               fontWeight: FontWeight.w700,
-              fontSize: 13,
+              fontSize: isCompact ? 12 : 13,
             ),
           ),
         ],
@@ -793,18 +843,56 @@ class _Footer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool isCompact = MediaQuery.of(context).size.width < 430;
+
     return Container(
       width: double.infinity,
       color: const Color(0xFF241813),
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
-      child: const Text(
-        'Carvoaria Bistrô | @carvoariabistro | Reservas: +351 932196982',
-        textAlign: TextAlign.center,
-        style: TextStyle(
-          color: Color(0xFFF5DCC9),
-          fontSize: 14,
-          fontWeight: FontWeight.w500,
-        ),
+      padding: EdgeInsets.symmetric(
+        horizontal: 14,
+        vertical: isCompact ? 14 : 18,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            'Carvoaria Bistrô | @carvoariabistro | Reservas: +351 932196982',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Color(0xFFF5DCC9),
+              fontSize: isCompact ? 12 : 14,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          SizedBox(height: isCompact ? 8 : 10),
+          GestureDetector(
+            onTap: () => launchUrl(
+              Uri.parse('https://deploylabz.com'),
+              mode: LaunchMode.externalApplication,
+            ),
+            child: RichText(
+              textAlign: TextAlign.center,
+              text: TextSpan(
+                style: TextStyle(
+                  fontSize: isCompact ? 11 : 12,
+                  color: Color(0xFF8C6E5A),
+                ),
+                children: [
+                  TextSpan(text: 'Desenvolvido por '),
+                  TextSpan(
+                    text: 'deploylabz.com',
+                    style: TextStyle(
+                      color: Color(0xFFD4956A),
+                      fontWeight: FontWeight.w600,
+                      decoration: TextDecoration.underline,
+                      decorationColor: Color(0xFFD4956A),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
