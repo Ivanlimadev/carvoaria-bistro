@@ -18,6 +18,10 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    # The Flutter app lives in cv_app/ (the repo root is a mixed Python/Flutter project).
+    defaults:
+      run:
+        working-directory: cv_app
     steps:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
@@ -29,7 +33,7 @@ jobs:
       - run: flutter build web --release --base-href "/carvoaria-bistro/"
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: build/web
+          path: cv_app/build/web
 
   deploy:
     needs: build
