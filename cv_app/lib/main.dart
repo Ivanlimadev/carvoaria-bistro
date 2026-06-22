@@ -163,6 +163,7 @@ class _BistroHomePageState extends State<BistroHomePage> {
                 },
               ),
               _MenuSection(categories: _menuCategories),
+              const _FloatingImagesSection(),
               const _LocationSection(),
               const _Footer(),
             ],
@@ -288,89 +289,89 @@ class _HeroSlider extends StatelessWidget {
               if (details.primaryVelocity! < -300) {
                 onSlideChanged((activeSlide + 1) % slides.length);
               } else if (details.primaryVelocity! > 300) {
-                onSlideChanged((activeSlide - 1 + slides.length) % slides.length);
+                onSlideChanged(
+                  (activeSlide - 1 + slides.length) % slides.length,
+                );
               }
             },
             child: Stack(
-            children: [
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 900),
-                transitionBuilder: (child, animation) => FadeTransition(
-                  opacity: animation,
-                  child: child,
-                ),
-                child: Stack(
-                  key: ValueKey(activeSlide),
-                  fit: StackFit.expand,
-                  children: [
-                    Image.asset(
-                      slides[activeSlide].imageAsset,
-                      fit: BoxFit.cover,
-                      width: double.infinity,
-                      height: double.infinity,
-                    ),
-                    const DecoratedBox(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.bottomCenter,
-                          end: Alignment.topCenter,
-                          colors: [Color(0xD9311A12), Color(0x33000000)],
+              children: [
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 900),
+                  transitionBuilder: (child, animation) =>
+                      FadeTransition(opacity: animation, child: child),
+                  child: Stack(
+                    key: ValueKey(activeSlide),
+                    fit: StackFit.expand,
+                    children: [
+                      Image.asset(
+                        slides[activeSlide].imageAsset,
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        height: double.infinity,
+                      ),
+                      const DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.bottomCenter,
+                            end: Alignment.topCenter,
+                            colors: [Color(0xD9311A12), Color(0x33000000)],
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              Positioned(
-                left: isMobile ? 14 : 22,
-                right: isMobile ? 14 : 22,
-                bottom: isMobile ? 18 : 24,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Carvoaria Bistrô',
-                      style: TextStyle(
-                        color: Color(0xFFFFEDE0),
-                        fontSize: 32,
-                        fontWeight: FontWeight.w800,
-                        height: 1,
+                Positioned(
+                  left: isMobile ? 14 : 22,
+                  right: isMobile ? 14 : 22,
+                  bottom: isMobile ? 18 : 24,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Carvoaria Bistrô',
+                        style: TextStyle(
+                          color: Color(0xFFFFEDE0),
+                          fontSize: 32,
+                          fontWeight: FontWeight.w800,
+                          height: 1,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      slides[activeSlide].title,
-                      maxLines: isCompact ? 2 : 3,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: Color(0xFFFFF4EC),
-                        fontSize: isCompact ? 14 : 17,
-                        fontWeight: FontWeight.w500,
+                      const SizedBox(height: 8),
+                      Text(
+                        slides[activeSlide].title,
+                        maxLines: isCompact ? 2 : 3,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: Color(0xFFFFF4EC),
+                          fontSize: isCompact ? 14 : 17,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 14),
-                    Row(
-                      children: List.generate(slides.length, (index) {
-                        final bool selected = index == activeSlide;
-                        return AnimatedContainer(
-                          duration: const Duration(milliseconds: 250),
-                          margin: const EdgeInsets.only(right: 8),
-                          width: selected ? 28 : 10,
-                          height: 10,
-                          decoration: BoxDecoration(
-                            color: selected
-                                ? const Color(0xFFFFD1A8)
-                                : const Color(0x88FFFFFF),
-                            borderRadius: BorderRadius.circular(999),
-                          ),
-                        );
-                      }),
-                    ),
-                  ],
+                      const SizedBox(height: 14),
+                      Row(
+                        children: List.generate(slides.length, (index) {
+                          final bool selected = index == activeSlide;
+                          return AnimatedContainer(
+                            duration: const Duration(milliseconds: 250),
+                            margin: const EdgeInsets.only(right: 8),
+                            width: selected ? 28 : 10,
+                            height: 10,
+                            decoration: BoxDecoration(
+                              color: selected
+                                  ? const Color(0xFFFFD1A8)
+                                  : const Color(0x88FFFFFF),
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                          );
+                        }),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
           ),
         ),
       ),
@@ -657,15 +658,7 @@ class _LocationSection extends StatelessWidget {
           ),
           SizedBox(height: isCompact ? 6 : 8),
           Text(
-            'Seg a Qui: 18h às 23h',
-            style: TextStyle(fontSize: isCompact ? 14 : 15),
-          ),
-          Text(
-            'Sex e Sáb: 18h às 00h',
-            style: TextStyle(fontSize: isCompact ? 14 : 15),
-          ),
-          Text(
-            'Dom: 12h às 18h',
+            'Ter a Sáb: 17h às 2h',
             style: TextStyle(fontSize: isCompact ? 14 : 15),
           ),
           SizedBox(height: isCompact ? 12 : 14),
@@ -893,6 +886,58 @@ class _Footer extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _FloatingImagesSection extends StatelessWidget {
+  const _FloatingImagesSection({Key? key}) : super(key: key);
+
+  static const List<String> _imagePaths = [
+    'assets/carvoarianovasfotos/371909529_18014913454790686_4084596035944913294_n.jpg',
+    'assets/carvoarianovasfotos/380704243_18017574511790686_662873138801055601_n.jpg',
+    'assets/carvoarianovasfotos/462226929_18057637582790686_1515420506234488849_n.jpg',
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isMobile = MediaQuery.of(context).size.width < 800;
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(
+        horizontal: isMobile ? 14 : 40,
+        vertical: 24,
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: List.generate(_imagePaths.length, (index) {
+          return Transform.translate(
+            offset: Offset(0, index.isOdd ? -18 : 0),
+            child: Container(
+              margin: EdgeInsets.symmetric(horizontal: 12),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(18),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.18),
+                    blurRadius: 18,
+                    offset: Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(18),
+                child: Image.asset(
+                  _imagePaths[index],
+                  width: isMobile ? 110 : 180,
+                  height: isMobile ? 110 : 180,
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
+          );
+        }),
       ),
     );
   }
