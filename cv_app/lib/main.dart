@@ -902,11 +902,19 @@ class _FloatingImagesSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool isMobile = MediaQuery.of(context).size.width < 800;
+    final double screenW = MediaQuery.of(context).size.width;
+    final bool isMobile = screenW < 800;
+    final double hPad = isMobile ? 14 : 40;
+    final double margin = isMobile ? 8 : 12;
+    // Size each image so the three always fit within the screen width on
+    // mobile (was a fixed 110px, which overflowed on narrow phones).
+    final double available = screenW - hPad * 2 - margin * 2 * _imagePaths.length;
+    final double imgSize =
+        isMobile ? (available / _imagePaths.length).clamp(72.0, 130.0) : 180.0;
     return Container(
       width: double.infinity,
       padding: EdgeInsets.symmetric(
-        horizontal: isMobile ? 14 : 40,
+        horizontal: hPad,
         vertical: 24,
       ),
       child: Row(
@@ -915,7 +923,7 @@ class _FloatingImagesSection extends StatelessWidget {
           return Transform.translate(
             offset: Offset(0, index.isOdd ? -18 : 0),
             child: Container(
-              margin: EdgeInsets.symmetric(horizontal: 12),
+              margin: EdgeInsets.symmetric(horizontal: margin),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(18),
                 boxShadow: [
@@ -930,8 +938,8 @@ class _FloatingImagesSection extends StatelessWidget {
                 borderRadius: BorderRadius.circular(18),
                 child: Image.asset(
                   _imagePaths[index],
-                  width: isMobile ? 110 : 180,
-                  height: isMobile ? 110 : 180,
+                  width: imgSize,
+                  height: imgSize,
                   fit: BoxFit.cover,
                 ),
               ),
