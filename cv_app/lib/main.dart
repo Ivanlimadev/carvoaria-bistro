@@ -728,20 +728,14 @@ class _SocialIconButton extends StatelessWidget {
     }
   }
 
-  IconData _brandIcon() {
-    switch (brand) {
-      case SocialBrand.maps:
-        return FontAwesomeIcons.locationDot;
-      case SocialBrand.whatsApp:
-        return FontAwesomeIcons.whatsapp;
-      case SocialBrand.instagram:
-        return FontAwesomeIcons.instagram;
-    }
-  }
-
   Widget _brandGlyph() {
+    final FaIconData icon = switch (brand) {
+      SocialBrand.maps => FontAwesomeIcons.locationDot,
+      SocialBrand.whatsApp => FontAwesomeIcons.whatsapp,
+      SocialBrand.instagram => FontAwesomeIcons.instagram,
+    };
     return FaIcon(
-      _brandIcon(),
+      icon,
       size: brand == SocialBrand.maps ? 32 : 36,
       color: Colors.white,
     );
