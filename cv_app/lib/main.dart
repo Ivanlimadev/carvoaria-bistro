@@ -650,7 +650,7 @@ class _LocationSection extends StatelessWidget {
           ),
           SizedBox(height: isCompact ? 10 : 12),
           Text(
-            'Tv. da Cancella 1 7000-629 Évora - Portugal',
+            'Tv. da Cancella 1, 7000-629 Évora - Portugal',
             style: TextStyle(
               fontSize: isCompact ? 14 : 16,
               color: const Color(0xFF463426),
