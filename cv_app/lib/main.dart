@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 void main() {
@@ -727,56 +728,23 @@ class _SocialIconButton extends StatelessWidget {
     }
   }
 
-  Widget _brandGlyph() {
+  IconData _brandIcon() {
     switch (brand) {
       case SocialBrand.maps:
-        return const Icon(Icons.place_rounded, size: 34, color: Colors.white);
+        return FontAwesomeIcons.locationDot;
       case SocialBrand.whatsApp:
-        return const Stack(
-          alignment: Alignment.center,
-          children: [
-            Icon(Icons.chat_bubble_rounded, size: 36, color: Colors.white),
-            Padding(
-              padding: EdgeInsets.only(top: 1),
-              child: Icon(Icons.phone, size: 18, color: Color(0xFF128C7E)),
-            ),
-          ],
-        );
+        return FontAwesomeIcons.whatsapp;
       case SocialBrand.instagram:
-        return Stack(
-          alignment: Alignment.center,
-          children: [
-            Container(
-              width: 31,
-              height: 31,
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.white, width: 2.6),
-                borderRadius: BorderRadius.circular(9),
-              ),
-            ),
-            Container(
-              width: 12,
-              height: 12,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 2.2),
-              ),
-            ),
-            Positioned(
-              top: 9,
-              right: 8,
-              child: Container(
-                width: 5,
-                height: 5,
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                ),
-              ),
-            ),
-          ],
-        );
+        return FontAwesomeIcons.instagram;
     }
+  }
+
+  Widget _brandGlyph() {
+    return FaIcon(
+      _brandIcon(),
+      size: brand == SocialBrand.maps ? 32 : 36,
+      color: Colors.white,
+    );
   }
 
   Future<void> _openLink() async {
